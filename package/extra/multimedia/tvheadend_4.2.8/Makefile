@@ -121,7 +121,8 @@ CONFIGURE_ARGS += \
 	--disable-libmfx_static \
 	--disable-imagecache \
 
-TARGET_CFLAGS += -Wno-error=pointer-compare
+#TARGET_CFLAGS += -Wno-error=pointer-compare	
+TARGET_CFLAGS += $(FPIC) -ffunction-sections -fdata-sections
 
 define Build/Prepare
 	$(call Build/Prepare/Default)
