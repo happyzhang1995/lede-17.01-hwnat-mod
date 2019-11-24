@@ -26,10 +26,7 @@ define KernelPackage/shortcut-fe
   DEPENDS:=
   TITLE:=Kernel driver for SFE
   FILES:=$(PKG_BUILD_DIR)/shortcut-fe.ko $(PKG_BUILD_DIR)/shortcut-fe-ipv6.ko
-  KCONFIG:=CONFIG_NF_CONNTRACK_EVENTS=y \
-	   CONFIG_NF_CONNTRACK_TIMEOUT=y \
-	   CONFIG_SHORTCUT_FE=y \
-	   CONFIG_XFRM=y
+  KCONFIG:=CONFIG_NF_CONNTRACK_EVENTS=y
   AUTOLOAD:=$(call AutoLoad,09,shortcut-fe shortcut-fe-ipv6)
 endef
 
@@ -48,7 +45,7 @@ define KernelPackage/shortcut-fe-cm
   SECTION:=kernel
   CATEGORY:=Kernel modules
   SUBMENU:=Network Support
-  DEPENDS:=+kmod-ipt-conntrack +kmod-shortcut-fe
+  DEPENDS:=+kmod-ipt-conntrack +kmod-shortcut-fe @IPV6
   TITLE:=Kernel driver for SFE
   FILES:=$(PKG_BUILD_DIR)/shortcut-fe-cm.ko
   KCONFIG:=CONFIG_NF_CONNTRACK_CHAIN_EVENTS=y

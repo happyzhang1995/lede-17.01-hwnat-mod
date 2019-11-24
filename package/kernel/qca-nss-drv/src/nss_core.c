@@ -1651,7 +1651,6 @@ int nss_core_handle_napi(struct napi_struct *napi, int budget)
 	struct netdev_priv_instance *ndev_priv = netdev_priv(napi->dev);
 	struct int_ctx_instance *int_ctx = ndev_priv->int_ctx;
 	struct nss_ctx_instance *nss_ctx = int_ctx->nss_ctx;
-	bool invalid_cause;
 
 	/*
 	 * Read cause of interrupt
@@ -1661,7 +1660,6 @@ int nss_core_handle_napi(struct napi_struct *napi, int budget)
 	int_ctx->cause |= int_cause;
 
 	do {
-		invalid_cause = false;
 		while ((int_ctx->cause) && (budget)) {
 
 			/*
@@ -1703,20 +1701,10 @@ int nss_core_handle_napi(struct napi_struct *napi, int budget)
 				break;
 
 			default:
-				//nss_warning("%p: Invalid cause %x received from nss", nss_ctx, int_cause);
-				//nss_assert(0);
-
-				invalid_cause = true;
-				pr_warn("nss_core_handle_napi: Invalid cause %x received from nss", int_cause);
+				nss_warning("%p: Invalid cause %x received from nss", nss_ctx, int_cause);
+				nss_assert(0);
 				break;
 			}
-
-			if (budget < 0) {
-				pr_warn("nss_core_handle_napi: Budget is negative [%d]", budget);
-			}
-
-			if (invalid_cause)
-				break;
 		}
 
 		nss_hal_read_interrupt_cause(nss_ctx, int_ctx->shift_factor, &int_cause);

@@ -351,12 +351,6 @@ enum {
 	AR8216_PORT_STATE_FORWARD = 4
 };
 
-/* mib counter type */
-enum {
-	AR8XXX_MIB_BASIC = 0,
-	AR8XXX_MIB_EXTENDED = 1
-};
-
 enum {
 	AR8XXX_VER_AR8216 = 0x01,
 	AR8XXX_VER_AR8236 = 0x03,
@@ -383,7 +377,6 @@ struct ar8xxx_mib_desc {
 	unsigned int size;
 	unsigned int offset;
 	const char *name;
-	u8 type;
 };
 
 struct ar8xxx_chip {
@@ -450,9 +443,8 @@ struct ar8xxx_priv {
 
 	struct mutex mib_lock;
 	struct delayed_work mib_work;
+	int mib_next_port;
 	u64 *mib_stats;
-	u32 mib_poll_interval;
-	u8 mib_type;
 
 	struct list_head list;
 	unsigned int use_count;
@@ -503,22 +495,6 @@ int
 ar8xxx_sw_set_reset_mibs(struct switch_dev *dev,
 			 const struct switch_attr *attr,
 			 struct switch_val *val);
-int
-ar8xxx_sw_set_mib_poll_interval(struct switch_dev *dev,
-				const struct switch_attr *attr,
-				struct switch_val *val);
-int
-ar8xxx_sw_get_mib_poll_interval(struct switch_dev *dev,
-				const struct switch_attr *attr,
-				struct switch_val *val);
-int
-ar8xxx_sw_set_mib_type(struct switch_dev *dev,
-		       const struct switch_attr *attr,
-		       struct switch_val *val);
-int
-ar8xxx_sw_get_mib_type(struct switch_dev *dev,
-		       const struct switch_attr *attr,
-		       struct switch_val *val);
 int
 ar8xxx_sw_set_mirror_rx_enable(struct switch_dev *dev,
 			       const struct switch_attr *attr,

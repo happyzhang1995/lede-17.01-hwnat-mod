@@ -1,9 +1,32 @@
-#include <dt-bindings/clock/qcom,rpmcc.h>
 #include "qcom-ipq8064.dtsi"
+
+#include <dt-bindings/clock/qcom,rpmcc.h>
 
 / {
 	model = "Qualcomm IPQ8065";
 	compatible = "qcom,ipq8065", "qcom,ipq8064";
+
+	cpus {
+		cpu@0 {
+			cpu_fab_threshold = <1000000000>;
+		};
+
+		cpu@1 {
+			cpu_fab_threshold = <1000000000>;
+		};
+
+		L2: l2-cache {
+			clocks = <&kraitcc 4>;
+			clock-names = "cache";
+			cache-points-kHz = <
+				/* kHz    uV    CPU kHz */
+				1200000 1150000 1200000
+				1000000 1100000  600000
+				 384000 1100000  384000
+			>;
+			vdd_dig-supply = <&smb208_s1a>;
+		};
+	};
 
 	qcom,pvs {
 		qcom,pvs-format-a;
@@ -64,7 +87,7 @@
 		reg-names = "nss_fpb_base";
 		clocks = <&gcc NSS_CORE_CLK>, <&gcc NSSTCM_CLK>,
 			 <&rpmcc RPM_NSS_FABRIC_0_CLK>, <&rpmcc RPM_NSS_FABRIC_1_CLK>;
-		clock-names = "nss_core_clk", "nss_tcm_clk",
+		clock-names = "nss-core-clk", "nss-tcm-clk",
 			      "nss-fab0-clk", "nss-fab1-clk";
 		nss_core-supply = <&smb208_s1b>;
 		nss_core_vdd_nominal = <1100000>;
@@ -78,6 +101,15 @@
 		clock-names = "apps-fab-clk", "ddr-fab-clk";
 		fab_freq_high = <533000000>;
 		fab_freq_nominal = <400000000>;
+	};
+
+	firmware {
+		scm {
+			compatible = "qcom,scm-ipq806x";
+		};
+		qfprom {
+			compatible = "qcom,qfprom-sec";
+		};
 	};
 
 	soc: soc {
@@ -98,6 +130,30 @@
 			};
 		};
 
+		watchdog@208a000 {
+			compatible = "qcom,kpss-wdt-ipq8064";
+			reg = <0x0208a000 0x100>;
+			reg-names = "kpss_wdt";
+			interrupt-names = "bark_irq";
+			interrupts = <0 3 0>;
+			timeout-sec = <10>;
+			clocks = <&sleep_clk>;
+		};
+
+		nss0: nss@40000000 {
+			compatible = "qcom,nss";
+			qcom,low-frequency = <110000000>;
+			qcom,mid-frequency = <600000000>;
+			qcom,max-frequency = <800000000>;
+		};
+
+		nss1: nss@40800000 {
+			compatible = "qcom,nss";
+			qcom,low-frequency = <110000000>;
+			qcom,mid-frequency = <600000000>;
+			qcom,max-frequency = <800000000>;
+		};
+
 		/* Temporary fixed regulator */
 		vsdcc_fixed: vsdcc-regulator {
 			compatible = "regulator-fixed";
@@ -105,20 +161,6 @@
 			regulator-min-microvolt = <3300000>;
 			regulator-max-microvolt = <3300000>;
 			regulator-always-on;
-		};
-
-		nss0: nss@40000000 {
-			compatible = "qcom,nss";
-			qcom,low_frequency = <110000000>;
-			qcom,mid_frequency = <600000000>;
-			qcom,max_frequency = <800000000>;
-		};
-
-		nss1: nss@40800000 {
-			compatible = "qcom,nss";
-			qcom,low_frequency = <110000000>;
-			qcom,mid_frequency = <600000000>;
-			qcom,max_frequency = <800000000>;
 		};
 
 		sdcc1bam:dma@12402000 {
@@ -186,5 +228,43 @@
 				dma-names = "tx", "rx";
 			};
 		};
+	};
+
+	qcom,msm-imem@2a03f000 {
+		compatible = "qcom,msm-imem";
+		reg = <0x2a03f000 0x1000>; /* Address and size of IMEM */
+		ranges = <0x0 0x2A03F000 0x1000>;
+		#address-cells = <1>;
+		#size-cells = <1>;
+
+		download_mode@0 {
+			compatible = "qcom,msm-imem-download_mode";
+			reg = <0x0 8>;
+
+			l2_dump_offset@14 {
+				compatible = "qcom,msm-imem-l2_dump_offset";
+				reg = <0x14 8>;
+			};
+		};
+
+		restart_reason@65c {
+			compatible = "qcom,msm-imem-restart_reason";
+			reg = <0x65c 4>;
+		};
+
+		l2_dump_offset@14 {
+			compatible = "qcom,msm-imem-l2_dump_offset";
+			reg = <0x14 8>;
+		};
+
+		qcom,cache_dump {
+			compatible        = "qcom,cache_dump";
+			qcom,l1-dump-size = <0x100000>;
+			qcom,l2-dump-size = <0x200000>;
+		};
+	};
+
+	qcom,restart_reason {
+		compatible        = "qcom,restart_reason";
 	};
 };

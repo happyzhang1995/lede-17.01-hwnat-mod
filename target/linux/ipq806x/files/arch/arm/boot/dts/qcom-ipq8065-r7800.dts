@@ -62,7 +62,7 @@
 
 			led_pins: led_pins {
 				pins = "gpio7", "gpio8", "gpio9", "gpio22", "gpio23",
-					"gpio24","gpio26", "gpio53", "gpio64";
+					"gpio24","gpio26", "gpio53", "gpio64", "gpio67";
 				function = "gpio";
 				drive-strength = <2>;
 				bias-pull-down;
@@ -102,6 +102,15 @@
 				clk {
 					pins = "gpio1";
 					input-disable;
+				};
+			};
+
+			rgmii1_pins: rgmii1_pins {
+				mux {
+					pins = "gpio2";
+					function = "gpio";
+					drive-strength = <8>;
+					bias-disable;
 				};
 			};
 
@@ -366,8 +375,8 @@
 				read-only;
 			};
 
-			firmware@1480000 {
-				label = "firmware";
+			nandfw@1480000 {
+				label = "nandfw";
 				reg = <0x1480000 0x6480000>;
 			};
 		};
@@ -411,6 +420,8 @@
 					0x1	0x5e	    /* VLAN1 Ports 1/2/3/4/6 */
 					0x2	0x21	    /* VLAN2 Ports 0/5 */
 				>;
+				link-polling-required = <0>;
+				link-intr-gpio = <2>;
 			};
 
 			phy4: ethernet-phy@4 {
@@ -445,25 +456,20 @@
 			qcom,num-irq = <2>;
 			qcom,num-queue = <2>;
 			qcom,load-addr = <0x40000000>;
-			qcom,turbo-frequency;
+			qcom,turbo-frequency = <1>;
 
-			qcom,bridge-enabled;
-			qcom,gre-enabled;
-			qcom,gre-redir-enabled;
-			qcom,gre_tunnel_enabled;
 			qcom,ipv4-enabled;
 			qcom,ipv4-reasm-enabled;
 			qcom,ipv6-enabled;
 			qcom,ipv6-reasm-enabled;
 			qcom,l2tpv2-enabled;
+			qcom,gre-enabled;
 			qcom,map-t-enabled;
-			qcom,pppoe-enabled;
 			qcom,pptp-enabled;
-			qcom,portid-enabled;
 			qcom,shaping-enabled;
 			qcom,tun6rd-enabled;
 			qcom,tunipip6-enabled;
-			qcom,vlan-enabled;
+			qcom,pppoe-enabled;
 			qcom,wlan-dataplane-offload-enabled;
 			qcom,wlanredirect-enabled;
 		};
@@ -484,18 +490,26 @@
 			qcom,num-irq = <2>;
 			qcom,load-addr = <0x40800000>;
 			qcom,num-queue = <2>;
-			qcom,turbo-frequency;
+			qcom,turbo-frequency = <1>;
 
-			qcom,capwap-enabled;
 			qcom,crypto-enabled;
-			qcom,dtls-enabled;
 			qcom,ipsec-enabled;
 		};
 
 		nss-gmac-common {
 			compatible = "qcom,nss-gmac-common";
 			reg = <0x03000000 0x0000FFFF 0x1bb00000 0x0000FFFF 0x00900000 0x00004000>;
-			reg-names = "nss_reg_base", "qsgmii_reg_base", "clk_ctl_base";
+			reg-names = "nss_reg_base" , "qsgmii_reg_base", "clk_ctl_base";
+		};
+
+		msm-sps {
+			compatible = "qcom,msm_sps";
+			interrupts = <GIC_SPI 105 IRQ_TYPE_LEVEL_HIGH>;
+			reg = <0x12800000 0x4000 0x12240000 0x1000 0x12244000 0x4000>;
+			reg-name = "pipe_mem", "bamdma_dma", "bamdma_bam";
+			clocks = <&rpmcc RPM_DAYTONA_FABRIC_CLK>, <&gcc DMA_BAM_H_CLK>;
+			clock-names = "dfab_clk", "dma_bam_pclk";
+			qcom,bam-dma-res-pipes = <6>;
 		};
 
 		gmac1: ethernet@37200000 {

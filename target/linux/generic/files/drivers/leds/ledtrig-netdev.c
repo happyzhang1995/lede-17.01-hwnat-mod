@@ -264,35 +264,39 @@ static int netdev_trig_notify(struct notifier_block *nb,
 	struct net_device *dev = netdev_notifier_info_to_dev((struct netdev_notifier_info *) dv);
 	struct led_netdev_data *trigger_data = container_of(nb, struct led_netdev_data, notifier);
 
-	if (evt != NETDEV_UP && evt != NETDEV_DOWN && evt != NETDEV_CHANGE && evt != NETDEV_REGISTER && evt != NETDEV_UNREGISTER)
+	if (evt != NETDEV_UP && evt != NETDEV_DOWN && evt != NETDEV_CHANGE && evt != NETDEV_REGISTER && evt != NETDEV_UNREGISTER && evt != NETDEV_CHANGENAME)
 		return NOTIFY_DONE;
 
-	if (!(dev == trigger_data->net_dev ||
-	      (evt == NETDEV_REGISTER && !strcmp(dev->name, trigger_data->device_name))))
+	if (strcmp(dev->name, trigger_data->device_name))
 		return NOTIFY_DONE;
 
 	cancel_delayed_work_sync(&trigger_data->work);
 
 	spin_lock_bh(&trigger_data->lock);
 
-	switch (evt) {
-	case NETDEV_REGISTER:
+	if (evt == NETDEV_REGISTER || evt == NETDEV_CHANGENAME) {
+		if (trigger_data->net_dev != NULL)
+			dev_put(trigger_data->net_dev);
+
 		dev_hold(dev);
 		trigger_data->net_dev = dev;
 		trigger_data->link_up = 0;
-		break;
-	case NETDEV_UNREGISTER:
-		dev_put(trigger_data->net_dev);
-		trigger_data->net_dev = NULL;
-		break;
-	default: /* UP / DOWN / CHANGE */
-		trigger_data->link_up = (evt != NETDEV_DOWN && netif_carrier_ok(dev));
-		set_baseline_state(trigger_data);
-		break;
+		goto done;
 	}
 
-	spin_unlock_bh(&trigger_data->lock);
+	if (evt == NETDEV_UNREGISTER && trigger_data->net_dev != NULL) {
+		dev_put(trigger_data->net_dev);
+		trigger_data->net_dev = NULL;
+		goto done;
+	}
 
+	/* UP / DOWN / CHANGE */
+
+	trigger_data->link_up = (evt != NETDEV_DOWN && netif_carrier_ok(dev));
+	set_baseline_state(trigger_data);
+
+done:
+	spin_unlock_bh(&trigger_data->lock);
 	return NOTIFY_DONE;
 }
 

@@ -926,7 +926,7 @@ ar8327_setup_port(struct ar8xxx_priv *priv, int port, u32 members)
 
 	t = pvid << AR8327_PORT_VLAN0_DEF_SVID_S;
 	t |= pvid << AR8327_PORT_VLAN0_DEF_CVID_S;
-	if (priv->vlan && priv->port_vlan_prio[port]) {
+	if (priv->vlan && priv->port_vlan_prio[port] > 0) {
 		u32 prio = priv->port_vlan_prio[port];
 
 		t |= prio << AR8327_PORT_VLAN0_DEF_SPRI_S;
@@ -936,7 +936,7 @@ ar8327_setup_port(struct ar8xxx_priv *priv, int port, u32 members)
 
 	t = AR8327_PORT_VLAN1_PORT_VLAN_PROP;
 	t |= egress << AR8327_PORT_VLAN1_OUT_MODE_S;
-	if (priv->vlan && priv->port_vlan_prio[port])
+	if (priv->vlan && priv->port_vlan_prio[port] > 0)
 		t |= AR8327_PORT_VLAN1_VLAN_PRI_PROP;
 
 	ar8xxx_write(priv, AR8327_REG_PORT_VLAN1(port), t);
@@ -1083,10 +1083,8 @@ ar8327_wait_atu_ready(struct ar8xxx_priv *priv, u16 r2, u16 r1)
 {
 	int timeout = 20;
 
-	while (ar8xxx_mii_read32(priv, r2, r1) & AR8327_ATU_FUNC_BUSY && --timeout) {
-		udelay(10);
-		cond_resched();
-	}
+	while (ar8xxx_mii_read32(priv, r2, r1) & AR8327_ATU_FUNC_BUSY && --timeout)
+                udelay(10);
 
 	if (!timeout)
 		pr_err("ar8327: timeout waiting for atu to become ready\n");
@@ -1327,20 +1325,6 @@ static const struct switch_attr ar8327_sw_attr_globals[] = {
 	},
 	{
 		.type = SWITCH_TYPE_INT,
-		.name = "ar8xxx_mib_poll_interval",
-		.description = "MIB polling interval in msecs (0 to disable)",
-		.set = ar8xxx_sw_set_mib_poll_interval,
-		.get = ar8xxx_sw_get_mib_poll_interval
-	},
-	{
-		.type = SWITCH_TYPE_INT,
-		.name = "ar8xxx_mib_type",
-		.description = "MIB type (0=basic 1=extended)",
-		.set = ar8xxx_sw_set_mib_type,
-		.get = ar8xxx_sw_get_mib_type
-	},
-	{
-		.type = SWITCH_TYPE_INT,
 		.name = "enable_mirror_rx",
 		.description = "Enable mirroring of RX packets",
 		.set = ar8xxx_sw_set_mirror_rx_enable,
@@ -1370,7 +1354,7 @@ static const struct switch_attr ar8327_sw_attr_globals[] = {
 		.set = ar8xxx_sw_set_mirror_source_port,
 		.get = ar8xxx_sw_get_mirror_source_port,
 		.max = AR8327_NUM_PORTS - 1
-	},
+ 	},
 	{
 		.type = SWITCH_TYPE_INT,
 		.name = "arl_age_time",
@@ -1512,7 +1496,7 @@ const struct ar8xxx_chip ar8327_chip = {
 };
 
 const struct ar8xxx_chip ar8337_chip = {
-	.caps = AR8XXX_CAP_GIGE | AR8XXX_CAP_MIB_COUNTERS,
+	.caps = AR8XXX_CAP_GIGE  /*| AR8XXX_CAP_MIB_COUNTERS*/,
 	.config_at_probe = true,
 	.mii_lo_first = true,
 

@@ -78,7 +78,7 @@ qca-nss-drv-objs += nss_data_plane/nss_data_plane_edma.o \
 ccflags-y += -I$(obj)/nss_hal/ipq807x -DNSS_HAL_IPQ807x_SUPPORT
 endif
 
-ccflags-y += -I$(obj)/nss_hal/include -I$(obj)/nss_data_plane/include -I$(obj)/exports -DNSS_DEBUG_LEVEL=1 -DNSS_PKT_STATS_ENABLED=1
+ccflags-y += -I$(obj)/nss_hal/include -I$(obj)/nss_data_plane/include -I$(obj)/exports -DNSS_DEBUG_LEVEL=0 -DNSS_PKT_STATS_ENABLED=1
 
 ccflags-y += -DNSS_PM_DEBUG_LEVEL=0 -DNSS_SKB_RECYCLE_SUPPORT=1
 ccflags-y += -Werror
@@ -94,7 +94,7 @@ endif
 # Fabric scaling is supported in 3.14 and 4.4 only
 ifneq ($(findstring 3.14, $(KERNELVERSION)),)
 NSS_CCFLAGS += -DNSS_FABRIC_SCALING_SUPPORT=1
-else ifneq ($(findstring 4.4, $(KERNELVERSION)),)
+else if ($(findstring 4.4, $(KERNELVERSION)),)
 NSS_CCFLAGS += -DNSS_FABRIC_SCALING_SUPPORT=1
 else
 NSS_CCFLAGS += -DNSS_FABRIC_SCALING_SUPPORT=0

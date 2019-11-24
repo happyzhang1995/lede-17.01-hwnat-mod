@@ -103,18 +103,7 @@
  	return 0;
 --- a/net/mac80211/rx.c	2019-01-03 21:09:29.503001000 +0800
 +++ b/net/mac80211/rx.c	2019-01-03 21:17:42.463001000 +0800
-@@ -34,6 +34,10 @@
- #include "wme.h"
- #include "rate.h"
- 
-+#ifdef CPTCFG_MAC80211_NSS_SUPPORT
-+extern bool is_nss_enable;
-+#endif
-+
- static inline void ieee80211_rx_stats(struct net_device *dev, u32 len)
- {
- 	struct pcpu_sw_netstats *tstats = this_cpu_ptr(netdev_tstats(dev));
-@@ -89,6 +89,50 @@
+@@ -89,6 +89,49 @@
  	return NULL;
  }
  
@@ -133,7 +122,6 @@
 +		case_rtn_string(NSS_TX_FAILURE_TOO_SHORT);
 +		case_rtn_string(NSS_TX_FAILURE_NOT_SUPPORTED);
 +		case_rtn_string(NSS_TX_FAILURE_BAD_PARAM);
-+		case_rtn_string(NSS_TX_FAILURE_NOT_ENABLED);
 +	default:
 +		return "Unknown NSS TX status";
 +	}
@@ -150,7 +138,7 @@
 +	ret = nss_tx_virt_if_rxbuf(sdata->nssctx, skb);
 +	if (ret) {
 +		if (net_ratelimit()) {
-+			sdata_err(sdata, "NSS TX failed with error[%d]: %s\n", ret,
++			sdata_err(sdata, "NSS TX failed with error: %s\n",
 +				  nss_tx_status_str(ret));
 +		}
 +		goto out;
@@ -165,19 +153,12 @@
  /*
   * monitor mode reception
   *
-@@ -2268,10 +2311,21 @@
+@@ -2268,10 +2311,14 @@
  		/* deliver to local stack */
  		skb->protocol = eth_type_trans(skb, dev);
  		memset(skb->cb, 0, sizeof(skb->cb));
 +#ifdef CPTCFG_MAC80211_NSS_SUPPORT
-+		if (likely(is_nss_enable))
-+			netif_rx_nss(sdata, skb);
-+		else {
-+			if (rx->napi)
-+				napi_gro_receive(rx->napi, skb);
-+			else
-+				netif_receive_skb(skb);
-+		}
++		netif_rx_nss(sdata, skb);
 +#else
  		if (rx->napi)
  			napi_gro_receive(rx->napi, skb);

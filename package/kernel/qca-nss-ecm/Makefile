@@ -18,8 +18,7 @@ define KernelPackage/qca-nss-ecm/Default
   DEPENDS:=@TARGET_ipq806x||TARGET_ipq807x||TARGET_ipq +kmod-qca-nss-drv +iptables-mod-extra +kmod-ipt-conntrack +kmod-shortcut-fe-drv +kmod-l2tp +kmod-pppol2tp +kmod-bonding +kmod-pptp @!LINUX_3_18
   TITLE:=QCA NSS Enhanced Connection Manager (ECM)
   FILES:=$(PKG_BUILD_DIR)/*.ko $(FILES_EXAMPLES)
-  KCONFIG:=CONFIG_BRIDGE_NETFILTER=y \
-	   CONFIG_NF_CONNTRACK_DSCPREMARK_EXT=y
+  KCONFIG:=CONFIG_BRIDGE_NETFILTER=y
   MENU:=1
 endef
 
