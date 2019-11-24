@@ -39,8 +39,10 @@ CONFIGURE_ARGS += \
 	--enable-shared \
 	--enable-static \
 	--enable-neon \
-
-TARGET_CFLAGS += $(FPIC)
+  
+TARGET_CFLAGS := $(filter-out -O%,$(TARGET_CFLAGS)) -O3
+TARGET_CFLAGS += $(FPIC) -ffunction-sections -fdata-sections
+TARGET_LDFLAGS += -Wl,--gc-sections
 
 define Build/InstallDev
 	$(INSTALL_DIR) $(1)/usr/include/dvbcsa
